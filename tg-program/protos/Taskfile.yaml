@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  generate-auth:
+    desc: "protobuf for auth"
+    cmds:
+      -  protoc --go_out=D:\projects\golang\tg-program\database-auth\proto --go_opt=paths=source_relative --go-grpc_out=D:\projects\golang\tg-program\database-auth\proto --go-grpc_opt=paths=source_relative -I=D:\projects\golang\tg-program\protos\proto\auth D:\projects\golang\tg-program\protos\proto\auth\auth.proto
+  
+  generate-schedule:
+    desc: "protobuf for schedule"
+    cmds:
+      -  protoc --go_out=D:\projects\golang\tg-program\database-schedule\proto --go_opt=paths=source_relative --go-grpc_out=D:\projects\golang\tg-program\database-schedule\proto --go-grpc_opt=paths=source_relative -I=D:\projects\golang\tg-program\protos\proto\schedule D:\projects\golang\tg-program\protos\proto\schedule\schedule.proto
+
+  generate-teacher:
+    desc: "protobuf for teacher"
+    cmds:
+      -  protoc --go_out=D:\projects\golang\tg-program\database-teacher\proto --go_opt=paths=source_relative --go-grpc_out=D:\projects\golang\tg-program\database-teacher\proto --go-grpc_opt=paths=source_relative -I=D:\projects\golang\tg-program\protos\proto\teacher D:\projects\golang\tg-program\protos\proto\teacher\teacher.proto
+
+  generate-adress-contact:
+    desc: "protobuf for adress-contact"
+    cmds:
+      -  protoc --go_out=D:\projects\golang\tg-program\database-adress-contact\proto --go_opt=paths=source_relative --go-grpc_out=D:\projects\golang\tg-program\database-adress-contact\proto --go-grpc_opt=paths=source_relative -I=D:\projects\golang\tg-program\protos\proto\adress-contact D:\projects\golang\tg-program\protos\proto\adress-contact\adress-contact.proto

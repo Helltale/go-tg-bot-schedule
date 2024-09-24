@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "D:/projects/golang/tg-program/database-adress-contact/proto/adress-contact";
+
+package address_service;
+
+// Сообщение для запроса информации об адресе
+message AddressRequest {
+    string place_name = 1; // Название места (например, "Административный корпус")
+}
+
+// Сообщение для представления информации об адресе
+message Place {
+    string place_name = 1;
+    string place_time_start = 2;
+    string place_time_end = 3;
+    string place_phone = 4;
+    string place_email = 5;
+    string place_adress = 6;
+    string place_adress_real = 7;
+}
+
+// Сообщение для ответа с информацией об адресах
+message AddressResponse {
+    repeated Place places = 1; // Список мест
+}
+
+// Определение сервиса
+service AddressService {
+    rpc GetAddressInfo(AddressRequest) returns (AddressResponse);
+}

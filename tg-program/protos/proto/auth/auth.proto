@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option go_package = "D:/projects/golang/tg-program/database-auth/proto/auth";
+
+package auth;
+
+service Auth {
+    rpc CheckUser(CheckUserRequest) returns (CheckUserResponse);
+    rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
+    rpc GetGroups(Empty) returns (GetGroupsResponse);
+}
+
+message CheckUserRequest {
+    int64 profile_tg_id = 1;
+}
+
+message CheckUserResponse {
+    bool exists = 1;
+    string profile_name = 2;
+}
+
+message RegisterUserRequest {
+    int64 profile_tg_id = 1;
+    string profile_name = 2;
+    string group_name = 3;
+}
+
+message RegisterUserResponse {
+    bool success = 1;
+}
+
+message Empty {}
+
+message GetGroupsResponse {
+    repeated string groups = 1;
+}

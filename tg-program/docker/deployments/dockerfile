@@ -1,0 +1,15 @@
+FROM postgres:13
+
+# Копируем скрипт для создания таблиц
+COPY create-table/create_tables.sql /docker-entrypoint-initdb.d/
+COPY insert/other/insert_values.sql /docker-entrypoint-initdb.d/
+
+# Устанавливаем права на скрипт
+RUN chmod +x /docker-entrypoint-initdb.d/create_tables.sql
+RUN chmod +x /docker-entrypoint-initdb.d/insert_values.sql
+
+# в лог
+RUN cat /docker-entrypoint-initdb.d/create_tables.sql
+RUN cat /docker-entrypoint-initdb.d/insert_values.sql
+
+

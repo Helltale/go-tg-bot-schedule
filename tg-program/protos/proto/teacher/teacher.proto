@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option go_package = "D:/projects/golang/tg-program/database-teacher/proto";
+
+package teacher;
+
+service TeacherService {
+    rpc FindTeachersByFIO(FindTeachersRequest) returns (FindTeachersResponse);
+    rpc FindTeachersByDepartment(FindTeachersByDepartmentRequest) returns (FindTeachersResponse);
+    rpc FindTeachersBySubject(FindTeachersBySubjectRequest) returns (FindTeachersResponse);
+}
+
+message FindTeachersRequest {
+    string fio = 1; // ФИО преподавателя
+}
+
+message FindTeachersByDepartmentRequest {
+    string department = 1; // Название кафедры
+}
+
+message FindTeachersBySubjectRequest {
+    string subject = 1; // Название предмета
+}
+
+message Teacher {
+    string teacher_profile_tg_id = 1;
+    string teacher_name = 2;
+    string teacher_job = 3;
+    string teacher_department = 4;
+    string teacher_adress = 5;
+    string teacher_email = 6;
+    string image_name = 7; // Имя изображения
+}
+
+message FindTeachersResponse {
+    repeated Teacher teachers = 1; // Список преподавателей
+}

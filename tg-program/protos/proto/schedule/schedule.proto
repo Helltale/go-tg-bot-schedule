@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option go_package = "D:/projects/golang/tg-program/database-schedule/proto/auth";
+
+package schedule;
+
+// Сообщение для запроса расписания
+message ScheduleRequest {
+    string group_name = 1; // Название группы
+    string request_type = 2; // Тип запроса: "today" или "week"
+}
+
+// Сообщение для ответа с расписанием
+message Lesson {
+    string type_education = 1; // Тип занятия (лекция, лабораторная и т.д.)
+    string teacher_name = 2; // ФИО преподавателя
+    string subject_name = 3; // Название предмета
+    string start_time = 4; // Время начала занятия
+    string end_time = 5; // Время окончания занятия
+    string link = 6; // Ссылка на занятие (если онлайн)
+}
+
+message ScheduleResponse {
+    repeated Lesson lessons = 1; // Список занятий
+}
+
+// Сообщение для запроса группы по tg_id
+message GetGroupByTGIDRequest {
+    int64 profile_tg_id = 1; // tg_id профиля
+}
+
+// Сообщение для ответа с названием группы
+message GetGroupByTGIDResponse {
+    string group_name = 1; // Название группы
+}
+
+// Определение сервиса для работы с расписанием
+service ScheduleService {
+    rpc GetSchedule(ScheduleRequest) returns (ScheduleResponse);
+    rpc GetGroupByTGID(GetGroupByTGIDRequest) returns (GetGroupByTGIDResponse);
+}
+
