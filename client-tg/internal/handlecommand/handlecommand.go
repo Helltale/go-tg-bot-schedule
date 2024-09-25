@@ -43,6 +43,17 @@ type AuthContext struct {
 	ProfileName    string
 	LastMessageID  int64
 	LastMessageIDs []int64
+	LastPlaceName  string
+	SelectedPlace  *pbac.Place
+}
+
+type PlaceInfo struct {
+	Name              string
+	WorkTime          string
+	Phone             string
+	Email             string
+	Address           string
+	PlaceAddressPoint string
 }
 
 // Маппинг для дней недели
@@ -303,18 +314,60 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				if update.CallbackQuery.Data == "adress_contact_back" {
 					sendMainMenu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
 					authContext.State = StateAuthorized
+
 				} else if update.CallbackQuery.Data == "adress_contact_administrative" {
-					handleAddressButtonPress(b, update.CallbackQuery.From.ID, "Административный корпус", authContext)
+					place := "Административный корпус"
+					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
 					authContext.State = StateToMainMenu
+
 				} else if update.CallbackQuery.Data == "adress_contact_study" {
-					handleAddressButtonPress(b, update.CallbackQuery.From.ID, "Учебный корпус", authContext)
+					place := "Учебный корпус"
+					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
 					authContext.State = StateToMainMenu
+
 				} else if update.CallbackQuery.Data == "adress_contact_living" {
-					handleAddressButtonPress(b, update.CallbackQuery.From.ID, "Общежитие", authContext)
+					place := "Общежитие"
+					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
 					authContext.State = StateToMainMenu
+
 				} else if update.CallbackQuery.Data == "adress_contact_departments" {
-					handleAddressButtonPress(b, update.CallbackQuery.From.ID, "Кафедры", authContext)
+					place := "Кафедры"
+					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
 					authContext.State = StateToMainMenu
+
+				}
+			}
+
+			if authContext.State == StateToMainMenu {
+				if update.CallbackQuery.Data == "send_location" {
+
+					ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+					defer cancel()
+
+					if authContext.SelectedPlace != nil {
+						// Получаем информацию о месте
+						places, err := findAddressByPlaceName(ctx, authContext.SelectedPlace.PlaceName) // Используем сохраненное место
+						if err != nil {
+							log.Printf("Ошибка при получении адреса: %v", err)
+							return
+						}
+
+						// Предполагаем, что вы хотите отправить локацию первого места
+						if len(places) > 0 {
+							latitude := places[0].PlaceAdressPoint.Latitude
+							longitude := places[0].PlaceAdressPoint.Longitude
+							sendMessageAdressLocation(bot, update.CallbackQuery.From.ID, authContext, latitude, longitude)
+						} else {
+							log.Println("Нет доступных мест для отправки локации.")
+						}
+					} else {
+						log.Println("Нет выбранного места.")
+					}
+
 				}
 			}
 
@@ -1048,15 +1101,11 @@ func handleAddressButtonPress(bot *telego.Bot, userID int64, placeName string, a
 	messages, err := getMessagesByPlaceName(ctx, placeName)
 	if err != nil {
 		// Обработка ошибки, если не удалось получить сообщения
-		sendMessage(bot, userID, fmt.Sprintf("Ошибка при получении информации об адресе: %s", err), authContext)
+		sendMessage(bot, userID, fmt.Sprintf("Ошибка при получении информации об адресе 1: %s", err), authContext)
 		return
 	}
 
-	// for index, message := range messages {
-	// 	sendMessage(bot, userID, fmt.Sprintf("%d index - %s message", int64(index), message), authContext)
-	// }
-
-	// Отправляем сообщения пользователю
+	authContext.LastPlaceName = placeName
 
 	clearMessages(bot, authContext, userID)
 
@@ -1064,6 +1113,17 @@ func handleAddressButtonPress(bot *telego.Bot, userID int64, placeName string, a
 		sendMessagesAdress(bot, userID, authContext, message)
 	}
 
+}
+
+var places []*pbac.Place
+
+func setAdressPoint(value []*pbac.Place) {
+	places = value
+}
+
+// Метод для получения значения глобальной переменной
+func getAdressPoint() []*pbac.Place {
+	return places
 }
 
 func getMessagesByPlaceName(ctx context.Context, placeName string) ([]string, error) {
@@ -1083,8 +1143,8 @@ func getMessagesByPlaceName(ctx context.Context, placeName string) ([]string, er
 		}
 
 		// Формирование текста сообщения
-		messageText := fmt.Sprintf("Название: %s\nВремя работы: %s\nТелефон: %s\nEmail: %s\nАдрес: %s\nРеальный адрес: %s",
-			place.PlaceName, workTime, place.PlacePhone, place.PlaceEmail, place.PlaceAdress, place.PlaceAdress)
+		messageText := fmt.Sprintf("Название: %s\nВремя работы: %s\nТелефон: %s\nEmail: %s\nАдрес: %s",
+			place.PlaceName, workTime, place.PlacePhone, place.PlaceEmail, place.PlaceAdress)
 
 		messages = append(messages, messageText)
 	}
@@ -1096,13 +1156,12 @@ func sendMessagesAdress(bot *telego.Bot, userID int64, authContext *AuthContext,
 
 	inlineKeyboard := tu.InlineKeyboard(
 		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Узнать расположение").WithCallbackData("send_location"),
+		),
+		tu.InlineKeyboardRow(
 			tu.InlineKeyboardButton("В главное меню").WithCallbackData("main_menu"),
 		),
 	)
-
-	location := tu.Location(telego.ChatID{
-		ID: userID,
-	}, 53.339688, -6.236688)
 
 	message := tu.Message(
 		tu.ID(userID),
@@ -1113,18 +1172,45 @@ func sendMessagesAdress(bot *telego.Bot, userID int64, authContext *AuthContext,
 	if err != nil {
 		log.Printf("Ошибка при отправке меню: %v", err)
 	} else {
-		// authContext.LastMessageID = int64(sentMessage.MessageID)
 		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
-		// sendMessage(bot, chatID, fmt.Sprintf("ид последнего сообщения `%d`", authContext.LastMessageID))
 	}
+}
+
+func sendMessageAdressLocation(bot *telego.Bot, userID int64, authContext *AuthContext, latitude, longitude float64) {
+	clearMessages(bot, authContext, userID)
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("В главное меню").WithCallbackData("main_menu"),
+		),
+	)
+
+	location := tu.Location(telego.ChatID{
+		ID: userID,
+	}, latitude, longitude).WithReplyMarkup(inlineKeyboard)
 
 	sentLocation, err := bot.SendLocation(location)
 	if err != nil {
-		log.Printf("Ошибка при отправке меню: %v", err)
+		log.Printf("Ошибка при отправке сообщения: %v", err)
 	} else {
-		// authContext.LastMessageID = int64(sentMessage.MessageID)
 		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentLocation.MessageID))
-		// sendMessage(bot, chatID, fmt.Sprintf("ид последнего сообщения `%d`", authContext.LastMessageID))
+	}
+}
+
+func handlerSendLocation(ctx context.Context, placeName string, bot *telego.Bot, userID int64, authContext *AuthContext) {
+	places, err := findAddressByPlaceName(ctx, placeName) // Убедитесь, что placeName доступен
+	if err != nil {
+		log.Printf("Ошибка при получении адреса: %v", err)
+		return
+	}
+
+	// Предполагаем, что вы хотите отправить локацию первого места
+	if len(places) > 0 {
+		latitude := places[0].PlaceAdressPoint.Latitude
+		longitude := places[0].PlaceAdressPoint.Longitude
+		sendMessageAdressLocation(bot, userID, authContext, latitude, longitude)
+	} else {
+		log.Println("Нет доступных мест для отправки локации.")
 	}
 }
 

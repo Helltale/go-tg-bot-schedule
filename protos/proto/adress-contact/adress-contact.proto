@@ -4,6 +4,12 @@ option go_package = "D:/projects/golang/tg-program/database-adress-contact/proto
 
 package address_service;
 
+// Сообщение для представления точки (широта и долгота)
+message Point {
+    double latitude = 1;   // Широта
+    double longitude = 2;  // Долгота
+}
+
 // Сообщение для запроса информации об адресе
 message AddressRequest {
     string place_name = 1; // Название места (например, "Административный корпус")
@@ -11,13 +17,13 @@ message AddressRequest {
 
 // Сообщение для представления информации об адресе
 message Place {
-    string place_name = 1;
-    string place_time_start = 2;
-    string place_time_end = 3;
-    string place_phone = 4;
-    string place_email = 5;
-    string place_adress = 6;
-    string place_adress_real = 7;
+    string place_name = 1;          // Название места
+    string place_time_start = 2;    // Время начала (в формате строки, например, "08:00:00")
+    string place_time_end = 3;      // Время окончания (в формате строки, например, "22:00:00")
+    string place_phone = 4;         // Телефон (строка)
+    string place_email = 5;         // Email (строка)
+    string place_adress = 6;        // Адрес (строка)
+    Point place_adress_point = 7;   // Использование типа Point для широты и долготы
 }
 
 // Сообщение для ответа с информацией об адресах

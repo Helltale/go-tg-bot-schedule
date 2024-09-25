@@ -96,7 +96,8 @@ CREATE TABLE adress_contacts.place (
     place_phone varchar(12),
     place_email varchar(250),
     place_adress varchar(250) not null,
-    place_adress_real varchar(250) not null
+    place_latitude double precision not null,
+    place_longitude double precision not null
 );
 
 CREATE TABLE adress_contacts.type_place (
