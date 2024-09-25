@@ -1107,7 +1107,7 @@ func sendMessagesAdress(bot *telego.Bot, userID int64, authContext *AuthContext,
 	message := tu.Message(
 		tu.ID(userID),
 		messageIn,
-	).WithReplyMarkup(inlineKeyboard).WithReplyParameters(location.ReplyParameters)
+	).WithReplyMarkup(inlineKeyboard)
 
 	sentMessage, err := bot.SendMessage(message)
 	if err != nil {
@@ -1115,6 +1115,15 @@ func sendMessagesAdress(bot *telego.Bot, userID int64, authContext *AuthContext,
 	} else {
 		// authContext.LastMessageID = int64(sentMessage.MessageID)
 		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+		// sendMessage(bot, chatID, fmt.Sprintf("ид последнего сообщения `%d`", authContext.LastMessageID))
+	}
+
+	sentLocation, err := bot.SendLocation(location)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		// authContext.LastMessageID = int64(sentMessage.MessageID)
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentLocation.MessageID))
 		// sendMessage(bot, chatID, fmt.Sprintf("ид последнего сообщения `%d`", authContext.LastMessageID))
 	}
 }
