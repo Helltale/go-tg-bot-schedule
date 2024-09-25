@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "D:/projects/golang/tg-program/database-documents/proto/documents";
+
+package documents;
+
+service DocumentService {
+    rpc GetDocuments (DocumentRequest) returns (DocumentListResponse);
+}
+
+message DocumentRequest {
+    string file_group = 1; // Группа файлов
+}
+
+message DocumentResponse {
+    string file_name = 1; // Название файла
+}
+
+message DocumentListResponse {
+    repeated DocumentResponse documents = 1; // Список названий файлов
+}

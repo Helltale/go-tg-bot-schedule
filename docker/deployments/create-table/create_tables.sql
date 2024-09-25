@@ -6,6 +6,8 @@ create schema teacher_info;
 
 create schema adress_contacts;
 
+create schema documents;
+
 CREATE TABLE account.type_role (
     role_name text primary key
 );
@@ -111,4 +113,20 @@ CREATE TABLE adress_contacts.place_info (
 
     foreign key (place_info_type_place_name) references adress_contacts.type_place(type_place_name),                                                                                      
     foreign key (place_info_place_name) references adress_contacts.place(place_name)  
+);
+
+CREATE TABLE documents.type_group (
+    type_group_name varchar(250) PRIMARY KEY
+);
+
+CREATE TABLE documents.type_file (
+    type_file_name varchar(250) PRIMARY KEY
+);
+
+CREATE TABLE documents.document (
+    file_name varchar(250) NOT NULL,
+    file_group varchar(250) NOT NULL,
+    PRIMARY KEY (file_name, file_group),
+    FOREIGN KEY (file_group) REFERENCES documents.type_group(type_group_name),
+    FOREIGN KEY (file_name) REFERENCES documents.type_file(type_file_name)
 );

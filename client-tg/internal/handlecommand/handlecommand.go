@@ -11,6 +11,7 @@ import (
 
 	pbac "tgclient/proto/adress-contact"
 	pba "tgclient/proto/auth"
+	pbd "tgclient/proto/documents"
 	pbs "tgclient/proto/schedule"
 	pbt "tgclient/proto/teacher"
 
@@ -35,6 +36,8 @@ const (
 	StateFindTeacherAwaitingDepartment //поиск препода по кафедре, ожидание ввода
 	StateFindTeacherAwaitingSubject    //поиск препода по предмету, ожидание ввода
 	StateAdressContactMenu             //меню для адресов и контактов
+	StateDocumentMenu                  //меню для документов
+	StateDocumentGroup1Menu            //меню 1 группы
 )
 
 type AuthContext struct {
@@ -221,9 +224,6 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				sendMessageWithoutDelete(b, update.CallbackQuery.From.ID, "Вы успешно зарегистрированы и авторизованы!", authContext)
 				message := fmt.Sprintf(`Чтобы быть в курсе последних новостей, скорее перейдите по ссылке, если ещё не подписаны: https://t.me/pmishSamSMU 
 	Буду рад ответить на любые ваши вопросы, %s!`, authContext.ProfileName)
-				// sendMessage(b, update.CallbackQuery.From.ID, fmt.Sprintf("bot: %d", update.CallbackQuery.From.ID))
-				// sendMessage(b, update.CallbackQuery.From.ID, fmt.Sprintf("auth context: %v", authContext))
-				// sendMessage(b, update.CallbackQuery.From.ID, fmt.Sprintf("chat id: %d", update.CallbackQuery.From.ID))
 
 				sendMessageWithoutDelete(b, update.CallbackQuery.From.ID, message, authContext)
 				sendMainMenuWithoutDelete(b, update.CallbackQuery.From.ID, authContext)
@@ -371,6 +371,29 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				}
 			}
 
+			if authContext.State == StateDocumentMenu {
+				if update.CallbackQuery.Data == "documents_back" {
+					sendMainMenu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
+					authContext.State = StateAuthorized
+				} else if update.CallbackQuery.Data == "document_group_1" {
+					sendDocumentsGroup1Menu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
+					authContext.State = StateDocumentGroup1Menu
+				}
+			}
+
+			if authContext.State == StateDocumentGroup1Menu {
+				if update.CallbackQuery.Data == "document_group_1_doc1" {
+					sendMessage(b, update.CallbackQuery.From.ID, "doc1", authContext)
+				} else if update.CallbackQuery.Data == "document_group_1_doc2" {
+					sendMessage(b, update.CallbackQuery.From.ID, "doc2", authContext)
+				} else if update.CallbackQuery.Data == "document_group_1_doc3" {
+					sendMessage(b, update.CallbackQuery.From.ID, "doc3", authContext)
+				} else if update.CallbackQuery.Data == "main_menu" {
+					sendMainMenu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
+					authContext.State = StateAuthorized
+				}
+			}
+
 		}
 	}, th.AnyCallbackQuery())
 
@@ -469,17 +492,6 @@ func TextForTeacherInfo(teachers []*pbt.Teacher) ([]string, []string) {
 
 func sendMainMenu(bot *telego.Bot, userID int64, authContext *AuthContext, chatID int64) {
 
-	// if authContext.LastMessageID != 0 {
-
-	// 	err := bot.DeleteMessage(&telego.DeleteMessageParams{
-	// 		ChatID:    tu.ID(chatID),
-	// 		MessageID: int(authContext.LastMessageID),
-	// 	})
-	// 	if err != nil {
-	// 		log.Printf("Ошибка при удалении сообщения: %v", err)
-	// 	}
-	// }
-
 	clearMessages(bot, authContext, chatID)
 
 	inlineKeyboard := tu.InlineKeyboard(
@@ -506,9 +518,71 @@ func sendMainMenu(bot *telego.Bot, userID int64, authContext *AuthContext, chatI
 	if err != nil {
 		log.Printf("Ошибка при отправке меню: %v", err)
 	} else {
-		// authContext.LastMessageID = int64(sentMessage.MessageID)
 		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
-		// sendMessage(bot, chatID, fmt.Sprintf("ид последнего сообщения `%d`", authContext.LastMessageID))
+	}
+}
+
+func sendDocumentsMenu(bot *telego.Bot, userID int64, authContext *AuthContext, chatID int64) {
+
+	clearMessages(bot, authContext, chatID)
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Группа 1").WithCallbackData("document_group_1"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Группа 2").WithCallbackData("document_group_2"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Группа 3").WithCallbackData("document_group_3"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Назад").WithCallbackData("documents_back"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		"Выберите из списка:",
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
+}
+
+func sendDocumentsGroup1Menu(bot *telego.Bot, userID int64, authContext *AuthContext, chatID int64) {
+
+	clearMessages(bot, authContext, chatID)
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 1").WithCallbackData("document_group_1_doc1"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 2").WithCallbackData("document_group_1_doc2"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 3").WithCallbackData("document_group_1_doc3"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Назад").WithCallbackData("main_menu"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		"Выберите из списка:",
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
 	}
 }
 
@@ -907,8 +981,8 @@ func sendTeachersInfoMenu(bot *telego.Bot, userID int64, authContext *AuthContex
 
 func sendDocumentsInfo(bot *telego.Bot, userID int64, authContext *AuthContext) {
 	// Логика для отправки информации о шаблонах/бланках документов
-	message := "Здесь будет информация о шаблонах/бланках документов."
-	sendMessage(bot, userID, message, authContext)
+	authContext.State = StateDocumentMenu
+	sendDocumentsMenu(bot, userID, authContext, userID)
 }
 
 func sendExtracurricularInfo(bot *telego.Bot, userID int64, authContext *AuthContext) {
@@ -1075,6 +1149,34 @@ func findTeachersBySubject(ctx context.Context, subject string) ([]*pbt.Teacher,
 	}
 
 	return resp.Teachers, nil
+}
+
+func connectToGRPCServer(address string) (*pbd.DocumentListResponse, error) {
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при подключении к gRPC серверу: %v", err)
+	}
+
+	client := pbd.NewDocumentServiceClient(conn)
+
+	resp, err := client.GetDocuments(context.Background(), &pbd.DocumentRequest{})
+	if err != nil {
+		log.Printf("Ошибка при получении документов: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Инициализация бота и gRPC клиента
+func initBotAndGRPC() (pbd.DocumentServiceClient, error) {
+
+	conn, err := grpc.Dial("localhost:50055", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	client := pbd.NewDocumentServiceClient(conn)
+	return client, nil
 }
 
 func findAddressByPlaceName(ctx context.Context, placeName string) ([]*pbac.Place, error) {
