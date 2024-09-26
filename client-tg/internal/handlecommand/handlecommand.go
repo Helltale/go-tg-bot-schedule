@@ -11,7 +11,6 @@ import (
 
 	pbac "tgclient/proto/adress-contact"
 	pba "tgclient/proto/auth"
-	pbd "tgclient/proto/documents"
 	pbs "tgclient/proto/schedule"
 	pbt "tgclient/proto/teacher"
 
@@ -38,6 +37,7 @@ const (
 	StateAdressContactMenu             //меню для адресов и контактов
 	StateDocumentMenu                  //меню для документов
 	StateDocumentGroup1Menu            //меню 1 группы
+	StateReadyForDownloadDocument      //готовность для скачивания файла
 )
 
 type AuthContext struct {
@@ -383,7 +383,11 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == StateDocumentGroup1Menu {
 				if update.CallbackQuery.Data == "document_group_1_doc1" {
-					sendMessage(b, update.CallbackQuery.From.ID, "doc1", authContext)
+					message := getFileInfo("doc1")
+					// sendMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					sendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = StateReadyForDownloadDocument
+
 				} else if update.CallbackQuery.Data == "document_group_1_doc2" {
 					sendMessage(b, update.CallbackQuery.From.ID, "doc2", authContext)
 				} else if update.CallbackQuery.Data == "document_group_1_doc3" {
@@ -394,10 +398,91 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				}
 			}
 
+			if authContext.State == StateReadyForDownloadDocument {
+				if update.CallbackQuery.Data == "main_menu" {
+					sendMainMenu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
+					authContext.State = StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					sendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
 		}
 	}, th.AnyCallbackQuery())
 
 	bh.Start()
+}
+
+func getFileInfo(document string) string {
+	var message string
+
+	switch document {
+	case "doc1":
+		fileInfo, err := os.Stat(filepath.Join("d:\\", "projects", "golang", "tg-program", "client-tg", "other", "docs", document+".docx"))
+		if err != nil {
+			fmt.Println("Ошибка:", err)
+			return message
+		}
+		message += fmt.Sprintf("Название: %s\n", fileInfo.Name())
+		message += fmt.Sprintf("Размер: %d б\n", fileInfo.Size())
+		message += fmt.Sprintf("Дата обновления: %s\n", fileInfo.ModTime().Format(time.DateOnly))
+
+		return message
+
+	default:
+		return message
+	}
+}
+
+func sendFileInfoMessage(bot *telego.Bot, userID int64, messageIn string, authContext *AuthContext) {
+
+	//очистка предыдущих сообщений
+	clearMessages(bot, authContext, userID)
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Скачать").WithCallbackData("downloading_file"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("В главное меню").WithCallbackData("main_menu"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		messageIn,
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке результата поиска: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
+}
+
+func sendFileInfoDocument(bot *telego.Bot, userID int64, authContext *AuthContext) {
+
+	clearMessages(bot, authContext, userID)
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("В главное меню").WithCallbackData("main_menu"),
+		),
+	)
+
+	document := tu.Document(
+		tu.ID(userID),
+		tu.File(mustOpen2("doc1")),
+	).WithReplyMarkup(inlineKeyboard)
+	// Sending document
+	sentMessage, err := bot.SendDocument(document)
+	if err != nil {
+		fmt.Println(err)
+		return
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
 }
 
 func sendTeachersInfo(bot *telego.Bot, userID int64, authContext *AuthContext, chatID int64, teachers []*pbt.Teacher) {
@@ -440,7 +525,7 @@ func sendTeachersInfo(bot *telego.Bot, userID int64, authContext *AuthContext, c
 
 		photo := tu.Photo(
 			tu.ID(userID),
-			tu.File(mustOpen(imgs[index])),
+			tu.File(mustOpen1(imgs[index])),
 		).WithReplyMarkup(inlineKeyboard).WithCaption(message)
 
 		sentMessage, err := bot.SendPhoto(photo)
@@ -453,9 +538,26 @@ func sendTeachersInfo(bot *telego.Bot, userID int64, authContext *AuthContext, c
 
 }
 
-func mustOpen(filename string) *os.File {
+func mustOpen1(filename string) *os.File {
 	// Добавляем .jpg к имени файла
 	filePath := filepath.Join("D:\\", "projects", "golang", "tg-program", "client-tg", "other", "imgs", filename+".jpg")
+
+	// Проверяем, существует ли файл
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		log.Fatalf("Ошибка: файл не найден по пути: %s", filePath)
+	}
+
+	// Открываем файл
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Fatalf("Ошибка при открытии файла %s: %v", filePath, err)
+	}
+	return file
+}
+
+func mustOpen2(filename string) *os.File {
+	// Добавляем .jpg к имени файла
+	filePath := filepath.Join("D:\\", "projects", "golang", "tg-program", "client-tg", "other", "docs", filename+".docx")
 
 	// Проверяем, существует ли файл
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -501,12 +603,12 @@ func sendMainMenu(bot *telego.Bot, userID int64, authContext *AuthContext, chatI
 		),
 		tu.InlineKeyboardRow(
 			tu.InlineKeyboardButton("Адреса и контакты").WithCallbackData("contacts"),
-			tu.InlineKeyboardButton("Шаблоны/бланки документов").WithCallbackData("documents"),
+			tu.InlineKeyboardButton("Бланки документов").WithCallbackData("documents"),
 		),
-		tu.InlineKeyboardRow(
-			tu.InlineKeyboardButton("Внеурочная активная деятельность").WithCallbackData("extracurricular"),
-			tu.InlineKeyboardButton("Задать вопрос").WithCallbackData("ask_question"),
-		),
+		// tu.InlineKeyboardRow(
+		// 	tu.InlineKeyboardButton("Внеурочная активная деятельность").WithCallbackData("extracurricular"),
+		// 	tu.InlineKeyboardButton("Задать вопрос").WithCallbackData("ask_question"),
+		// ),
 	)
 
 	message := tu.Message(
@@ -1151,34 +1253,6 @@ func findTeachersBySubject(ctx context.Context, subject string) ([]*pbt.Teacher,
 	return resp.Teachers, nil
 }
 
-func connectToGRPCServer(address string) (*pbd.DocumentListResponse, error) {
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("ошибка при подключении к gRPC серверу: %v", err)
-	}
-
-	client := pbd.NewDocumentServiceClient(conn)
-
-	resp, err := client.GetDocuments(context.Background(), &pbd.DocumentRequest{})
-	if err != nil {
-		log.Printf("Ошибка при получении документов: %v", err)
-		return nil, err
-	}
-	return resp, nil
-}
-
-// Инициализация бота и gRPC клиента
-func initBotAndGRPC() (pbd.DocumentServiceClient, error) {
-
-	conn, err := grpc.Dial("localhost:50055", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
-
-	client := pbd.NewDocumentServiceClient(conn)
-	return client, nil
-}
-
 func findAddressByPlaceName(ctx context.Context, placeName string) ([]*pbac.Place, error) {
 	conn, err := grpc.Dial("localhost:50054", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -1215,17 +1289,6 @@ func handleAddressButtonPress(bot *telego.Bot, userID int64, placeName string, a
 		sendMessagesAdress(bot, userID, authContext, message)
 	}
 
-}
-
-var places []*pbac.Place
-
-func setAdressPoint(value []*pbac.Place) {
-	places = value
-}
-
-// Метод для получения значения глобальной переменной
-func getAdressPoint() []*pbac.Place {
-	return places
 }
 
 func getMessagesByPlaceName(ctx context.Context, placeName string) ([]string, error) {
@@ -1296,23 +1359,6 @@ func sendMessageAdressLocation(bot *telego.Bot, userID int64, authContext *AuthC
 		log.Printf("Ошибка при отправке сообщения: %v", err)
 	} else {
 		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentLocation.MessageID))
-	}
-}
-
-func handlerSendLocation(ctx context.Context, placeName string, bot *telego.Bot, userID int64, authContext *AuthContext) {
-	places, err := findAddressByPlaceName(ctx, placeName) // Убедитесь, что placeName доступен
-	if err != nil {
-		log.Printf("Ошибка при получении адреса: %v", err)
-		return
-	}
-
-	// Предполагаем, что вы хотите отправить локацию первого места
-	if len(places) > 0 {
-		latitude := places[0].PlaceAdressPoint.Latitude
-		longitude := places[0].PlaceAdressPoint.Longitude
-		sendMessageAdressLocation(bot, userID, authContext, latitude, longitude)
-	} else {
-		log.Println("Нет доступных мест для отправки локации.")
 	}
 }
 
