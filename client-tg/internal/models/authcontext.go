@@ -18,7 +18,17 @@ const (
 	StateAdressContactMenu             //меню для адресов и контактов
 	StateDocumentMenu                  //меню для документов
 	StateDocumentGroup1Menu            //меню 1 группы
-	StateReadyForDownloadDocument      //готовность для скачивания файла
+	StateDocumentGroup2Menu
+	StateDocumentGroup3Menu
+	StateReadyForDownloadDocument1 //готовность для скачивания файла
+	StateReadyForDownloadDocument2
+	StateReadyForDownloadDocument3
+	StateReadyForDownloadDocument4
+	StateReadyForDownloadDocument5
+	StateReadyForDownloadDocument6
+	StateReadyForDownloadDocument7
+	StateReadyForDownloadDocument8
+	StateReadyForDownloadDocument9
 )
 
 type AuthContext struct {

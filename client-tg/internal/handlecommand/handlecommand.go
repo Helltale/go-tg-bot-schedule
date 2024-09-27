@@ -270,25 +270,25 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				} else if update.CallbackQuery.Data == "adress_contact_administrative" {
 					place := "Административный корпус"
 					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
-					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place}
 					authContext.State = models.StateToMainMenu
 
 				} else if update.CallbackQuery.Data == "adress_contact_study" {
 					place := "Учебный корпус"
 					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
-					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place}
 					authContext.State = models.StateToMainMenu
 
 				} else if update.CallbackQuery.Data == "adress_contact_living" {
 					place := "Общежитие"
 					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
-					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place}
 					authContext.State = models.StateToMainMenu
 
 				} else if update.CallbackQuery.Data == "adress_contact_departments" {
 					place := "Кафедры"
 					handleAddressButtonPress(b, update.CallbackQuery.From.ID, place, authContext)
-					authContext.SelectedPlace = &pbac.Place{PlaceName: place} // Сохраняем выбранное место
+					authContext.SelectedPlace = &pbac.Place{PlaceName: place}
 					authContext.State = models.StateToMainMenu
 
 				}
@@ -302,7 +302,7 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 					if authContext.SelectedPlace != nil {
 						// Получаем информацию о месте
-						places, err := clients.FindAddressByPlaceName(ctx, authContext.SelectedPlace.PlaceName) // Используем сохраненное место
+						places, err := clients.FindAddressByPlaceName(ctx, authContext.SelectedPlace.PlaceName)
 						if err != nil {
 							log.Printf("Ошибка при получении адреса: %v", err)
 							return
@@ -327,37 +327,179 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				if update.CallbackQuery.Data == "documents_back" {
 					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+
 				} else if update.CallbackQuery.Data == "document_group_1" {
 					messages.SendDocumentsGroup1Menu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
 					authContext.State = models.StateDocumentGroup1Menu
+
+				} else if update.CallbackQuery.Data == "document_group_2" {
+					messages.SendDocumentsGroup2Menu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
+					authContext.State = models.StateDocumentGroup2Menu
+
+				} else if update.CallbackQuery.Data == "document_group_3" {
+					messages.SendDocumentsGroup3Menu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
+					authContext.State = models.StateDocumentGroup3Menu
 				}
 			}
 
 			if authContext.State == models.StateDocumentGroup1Menu {
 				if update.CallbackQuery.Data == "document_group_1_doc1" {
-					message := fileutils.GetFileInfo("doc1")
+
+					message := fileutils.GetFileInfo("doc1", "docx")
 					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
-					authContext.State = models.StateReadyForDownloadDocument
+					authContext.State = models.StateReadyForDownloadDocument1
 
 				} else if update.CallbackQuery.Data == "document_group_1_doc2" {
-					messages.SendMessage(b, update.CallbackQuery.From.ID, "doc2", authContext)
+
+					message := fileutils.GetFileInfo("doc2", "docx")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument2
+
 				} else if update.CallbackQuery.Data == "document_group_1_doc3" {
-					messages.SendMessage(b, update.CallbackQuery.From.ID, "doc3", authContext)
+					// messages.SendMessage(b, update.CallbackQuery.From.ID, "doc3", authContext)
+
+					message := fileutils.GetFileInfo("doc3", "docx")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument3
+
 				} else if update.CallbackQuery.Data == "main_menu" {
 					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
 				}
 			}
 
-			if authContext.State == models.StateReadyForDownloadDocument {
+			if authContext.State == models.StateDocumentGroup2Menu {
+				if update.CallbackQuery.Data == "document_group_2_doc4" {
+					message := fileutils.GetFileInfo("doc4", "docx")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument4
+
+				} else if update.CallbackQuery.Data == "document_group_2_doc5" {
+					// messages.SendMessage(b, update.CallbackQuery.From.ID, "doc2", authContext)
+
+					message := fileutils.GetFileInfo("doc5", "docx")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument5
+
+				} else if update.CallbackQuery.Data == "document_group_2_doc6" {
+					// messages.SendMessage(b, update.CallbackQuery.From.ID, "doc3", authContext)
+
+					message := fileutils.GetFileInfo("doc6", "pdf")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument6
+
+				} else if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				}
+			}
+
+			if authContext.State == models.StateDocumentGroup3Menu {
+				if update.CallbackQuery.Data == "document_group_3_doc7" {
+					message := fileutils.GetFileInfo("doc7", "pdf")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument7
+
+				} else if update.CallbackQuery.Data == "document_group_3_doc8" {
+					// messages.SendMessage(b, update.CallbackQuery.From.ID, "doc2", authContext)
+
+					message := fileutils.GetFileInfo("doc8", "pdf")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument8
+
+				} else if update.CallbackQuery.Data == "document_group_3_doc9" {
+					// messages.SendMessage(b, update.CallbackQuery.From.ID, "doc3", authContext)
+
+					message := fileutils.GetFileInfo("doc9", "pdf")
+					messages.SendFileInfoMessage(b, update.CallbackQuery.From.ID, message, authContext)
+					authContext.State = models.StateReadyForDownloadDocument9
+
+				} else if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument1 {
 				if update.CallbackQuery.Data == "main_menu" {
 					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
 				} else if update.CallbackQuery.Data == "downloading_file" {
-					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext)
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc1", "docx")
 				}
 			}
 
+			if authContext.State == models.StateReadyForDownloadDocument2 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc2", "docx")
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument3 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc3", "docx")
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument4 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc4", "docx")
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument5 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc5", "docx")
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument6 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc6", "pdf")
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument7 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc7", "pdf")
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument8 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc8", "pdf")
+				}
+			}
+
+			if authContext.State == models.StateReadyForDownloadDocument9 {
+				if update.CallbackQuery.Data == "main_menu" {
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+					authContext.State = models.StateAuthorized
+				} else if update.CallbackQuery.Data == "downloading_file" {
+					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc9", "pdf")
+				}
+			}
 		}
 	}, th.AnyCallbackQuery())
 

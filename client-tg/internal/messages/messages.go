@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"tgclient/internal/clients"
 	"tgclient/internal/fileutils"
 	"tgclient/internal/models"
@@ -259,6 +260,70 @@ func SendDocumentsGroup1Menu(bot *telego.Bot, userID int64, authContext *models.
 	}
 }
 
+func SendDocumentsGroup2Menu(bot *telego.Bot, userID int64, authContext *models.AuthContext, chatID int64) {
+
+	ClearMessages(bot, authContext, chatID)
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 4").WithCallbackData("document_group_2_doc4"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 5").WithCallbackData("document_group_2_doc5"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 6").WithCallbackData("document_group_2_doc6"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Назад").WithCallbackData("main_menu"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		"Выберите из списка:",
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
+}
+
+func SendDocumentsGroup3Menu(bot *telego.Bot, userID int64, authContext *models.AuthContext, chatID int64) {
+
+	ClearMessages(bot, authContext, chatID)
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 7").WithCallbackData("document_group_3_doc7"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 8").WithCallbackData("document_group_3_doc8"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Документ 9").WithCallbackData("document_group_3_doc9"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Назад").WithCallbackData("main_menu"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		"Выберите из списка:",
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
+}
+
 func SendAdressContactMenu(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
 
 	ClearMessages(bot, authContext, userID)
@@ -320,7 +385,7 @@ func SendFileInfoMessage(bot *telego.Bot, userID int64, messageIn string, authCo
 	}
 }
 
-func SendFileInfoDocument(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
+func SendFileInfoDocument(bot *telego.Bot, userID int64, authContext *models.AuthContext, file string, filetype string) {
 
 	ClearMessages(bot, authContext, userID)
 
@@ -330,9 +395,21 @@ func SendFileInfoDocument(bot *telego.Bot, userID int64, authContext *models.Aut
 		),
 	)
 
+	var file_ *os.File
+
+	switch filetype {
+	case "pdf":
+		file_ = fileutils.MustOpenPDF(file)
+	case "docx":
+		file_ = fileutils.MustOpenDOCX(file)
+	default:
+		log.Printf("некорретно заданный файл или тип файла для загрузки %s - %s", file, filetype)
+		SendMessageInlineKeyboard(bot, userID, authContext, fmt.Sprintf("некорретно заданный файл для загрузки %s", filetype), "В главное меню", "main_menu")
+	}
+
 	document := tu.Document(
 		tu.ID(userID),
-		tu.File(fileutils.MustOpenDOCX("doc1")),
+		tu.File(file_),
 	).WithReplyMarkup(inlineKeyboard)
 
 	sentMessage, err := bot.SendDocument(document)

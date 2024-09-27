@@ -50,23 +50,18 @@ func MustOpenPDF(filename string) *os.File {
 	return file
 }
 
-func GetFileInfo(document string) string {
+func GetFileInfo(document string, postfix string) string {
 	var message string
 
-	switch document {
-	case "doc1":
-		fileInfo, err := os.Stat(filepath.Join("d:\\", "projects", "golang", "tg-program", "client-tg", "other", "docs", document+".docx"))
-		if err != nil {
-			fmt.Println("Ошибка:", err)
-			return message
-		}
-		message += fmt.Sprintf("Название: %s\n", fileInfo.Name())
-		message += fmt.Sprintf("Размер: %d б\n", fileInfo.Size())
-		message += fmt.Sprintf("Дата обновления: %s\n", fileInfo.ModTime().Format(time.DateOnly))
-
-		return message
-
-	default:
-		return message
+	fileInfo, err := os.Stat(filepath.Join("d:\\", "projects", "golang", "tg-program", "client-tg", "other", "docs", document+"."+postfix))
+	if err != nil {
+		fmt.Println("Ошибка:", err)
+		return fmt.Sprintf("%s", err)
 	}
+	message += fmt.Sprintf("Название: %s\n", fileInfo.Name())
+	message += fmt.Sprintf("Размер: %d б\n", fileInfo.Size())
+	message += fmt.Sprintf("Дата обновления: %s\n", fileInfo.ModTime().Format(time.DateOnly))
+
+	return message
+
 }
