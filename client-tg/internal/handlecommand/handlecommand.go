@@ -287,23 +287,36 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 					getGroupAndSendSchedule(b, update.CallbackQuery.From.ID, "week", authContext.UserID, authContext)
 
 				} else if update.CallbackQuery.Data == "schedule_back" { //кнопка назад (к главному меню) из выбора расписания расписания
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
 
 			if authContext.State == models.StateToMainMenu {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
 
 			if authContext.State == models.StateFindTeacherMenu {
 				// Обработка нажатий на маню посика препода
 				if update.CallbackQuery.Data == "teacher_find_back" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
+
 				} else if update.CallbackQuery.Data == "teacher_find_fio" {
 					messages.SendMessage(b, update.CallbackQuery.From.ID, "Введите фио преподавателя:", authContext)
 					authContext.State = models.StateFindTeacherAwaitingFIO
@@ -319,8 +332,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateAdressContactMenu {
 				if update.CallbackQuery.Data == "adress_contact_back" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 
 				} else if update.CallbackQuery.Data == "adress_contact_administrative" {
 					place := "Административный корпус"
@@ -380,8 +397,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateDocumentMenu {
 				if update.CallbackQuery.Data == "documents_back" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 
 				} else if update.CallbackQuery.Data == "document_group_1" {
 					messages.SendDocumentsGroup1Menu(b, update.CallbackQuery.From.ID, authContext, update.CallbackQuery.From.ID)
@@ -418,8 +439,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 					authContext.State = models.StateReadyForDownloadDocument3
 
 				} else if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
 
@@ -444,8 +469,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 					authContext.State = models.StateReadyForDownloadDocument6
 
 				} else if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
 
@@ -470,15 +499,23 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 					authContext.State = models.StateReadyForDownloadDocument9
 
 				} else if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
 
 			if authContext.State == models.StateReadyForDownloadDocument1 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc1", "docx")
 				}
@@ -486,8 +523,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument2 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc2", "docx")
 				}
@@ -495,8 +536,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument3 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc3", "docx")
 				}
@@ -504,8 +549,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument4 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc4", "docx")
 				}
@@ -513,8 +562,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument5 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc5", "docx")
 				}
@@ -522,8 +575,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument6 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc6", "pdf")
 				}
@@ -531,8 +588,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument7 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc7", "pdf")
 				}
@@ -540,8 +601,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument8 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc8", "pdf")
 				}
@@ -549,8 +614,12 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 
 			if authContext.State == models.StateReadyForDownloadDocument9 {
 				if update.CallbackQuery.Data == "main_menu" {
-					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 					authContext.State = models.StateAuthorized
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
+					messages.SendMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				} else if update.CallbackQuery.Data == "downloading_file" {
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc9", "pdf")
 				}
@@ -559,6 +628,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherEmailMessage {
 				if update.CallbackQuery.Data == "teacher_menu_email_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -566,6 +639,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherPassMessage {
 				if update.CallbackQuery.Data == "teacher_menu_pass_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -573,6 +650,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherVacationMessage {
 				if update.CallbackQuery.Data == "teacher_menu_vacation_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -580,6 +661,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherVacationSelfMessage {
 				if update.CallbackQuery.Data == "teacher_menu_vacation_self_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -587,6 +672,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherReferenseMessage {
 				if update.CallbackQuery.Data == "teacher_menu_reference_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -594,6 +683,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherPaySheetMessage {
 				if update.CallbackQuery.Data == "teacher_menu_pay_sheet_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -601,6 +694,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherMedicalMessage {
 				if update.CallbackQuery.Data == "teacher_menu_medical_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -608,6 +705,10 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 			if authContext.State == models.StateTeacherHelpDesk {
 				if update.CallbackQuery.Data == "teacher_menu_help_desk_back" {
 					authContext.State = models.StateTeacherMainMenu
+					if authContext.ProfileRole == "Гибрид" {
+						messages.SendTeacherMainMenuHybrid(b, update.CallbackQuery.From.ID, authContext)
+						return
+					}
 					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
 				}
 			}
@@ -682,7 +783,7 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				} else if update.CallbackQuery.Data == "hybrid_to_student" {
 					if authContext.ProfileRole == "Гибрид" {
 						authContext.State = models.StateAuthorized
-						messages.SendMainMenu(bot, update.CallbackQuery.From.ID, authContext)
+						messages.SendMainMenuHybrid(bot, update.CallbackQuery.From.ID, authContext)
 					}
 
 				}
