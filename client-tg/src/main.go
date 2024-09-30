@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"tgclient/config"
 	"tgclient/internal/handlecommand"
 	"tgclient/internal/inlinecommand"
 
@@ -10,8 +11,12 @@ import (
 )
 
 func main() {
-	botToken := "token"
-	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
+	config, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("error: bad token: %s", err)
+	}
+
+	bot, err := telego.NewBot(config.Token, telego.WithDefaultDebugLogger())
 	if err != nil {
 		log.Fatalf("error: can not start bot: %s", err)
 	}

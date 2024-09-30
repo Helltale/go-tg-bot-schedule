@@ -986,18 +986,6 @@ func getScheduleMessage(requestType, groupName string) string {
 
 }
 
-// func sendExtracurricularInfo(bot *telego.Bot, userID int64, authContext *AuthContext) {
-// 	// Логика для отправки информации о внеурочной активной деятельности
-// 	message := "Здесь будет информация о внеурочной активной деятельности."
-// 	sendMessage(bot, userID, message, authContext)
-// }
-
-// func sendQuestionForm(bot *telego.Bot, userID int64, authContext *AuthContext) {
-// 	// Логика для отправки формы для задания вопроса
-// 	message := "Здесь будет форма для задания вопроса."
-// 	sendMessage(bot, userID, message, authContext)
-// }
-
 func getGroupAndSendSchedule(bot *telego.Bot, userID int64, requestType string, tgID int64, authContext *models.AuthContext) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

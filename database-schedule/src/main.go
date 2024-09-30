@@ -59,7 +59,7 @@ func (s *server) GetSchedule(ctx context.Context, req *pb.ScheduleRequest) (*pb.
 		}
 		lessons = append(lessons, &lesson)
 	}
-	log.Println("Результат:", lessons)
+	// log.Println("Результат:", lessons)
 	return &pb.ScheduleResponse{Lessons: lessons}, nil
 }
 
