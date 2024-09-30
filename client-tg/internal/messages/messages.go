@@ -77,7 +77,7 @@ func SendMainMenuWithoutDelete(bot *telego.Bot, userID int64, authContext *model
 			tu.InlineKeyboardButton("Адреса и контакты").WithCallbackData("contacts"),
 			tu.InlineKeyboardButton("Бланки документов").WithCallbackData("documents"),
 		),
-		// tu.InlineKeyboardRow(
+		// tu.InlineKeyboardRow(я
 		// 	tu.InlineKeyboardButton("Внеурочная активная деятельность").WithCallbackData("extracurricular"),
 		// 	tu.InlineKeyboardButton("Задать вопрос").WithCallbackData("ask_question"),
 		// ),
@@ -101,6 +101,46 @@ func SendMainMenu(bot *telego.Bot, userID int64, authContext *models.AuthContext
 	ClearMessages(bot, authContext, userID)
 
 	SendMainMenuWithoutDelete(bot, userID, authContext)
+}
+
+func SendMainMenuWithoutDeleteHybrid(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Преподаватели").WithCallbackData("teachers"),
+			tu.InlineKeyboardButton("Расписание").WithCallbackData("schedule"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Адреса и контакты").WithCallbackData("contacts"),
+			tu.InlineKeyboardButton("Бланки документов").WithCallbackData("documents"),
+		),
+		// tu.InlineKeyboardRow(я
+		// 	tu.InlineKeyboardButton("Внеурочная активная деятельность").WithCallbackData("extracurricular"),
+		// 	tu.InlineKeyboardButton("Задать вопрос").WithCallbackData("ask_question"),
+		// ),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Сменить роль").WithCallbackData("hybrid_to_teacher"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		"Возможно, Ваш вопрос уже представлен в навигационном меню.\nПопробуйте выбрать подходящий вариант:",
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
+}
+
+func SendMainMenuHybrid(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
+
+	ClearMessages(bot, authContext, userID)
+
+	SendMainMenuWithoutDeleteHybrid(bot, userID, authContext)
 }
 
 func SendScheduleMenuWithoutDelete(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
@@ -520,4 +560,93 @@ func SendGroupSelection(bot *telego.Bot, userID int64, authContext *models.AuthC
 	} else {
 		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
 	}
+}
+
+func SendTeacherMainMenuWithoutDelete(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Рабочая почта").WithCallbackData("teacher_menu_email"),
+			tu.InlineKeyboardButton("Пропуск").WithCallbackData("teacher_menu_pass"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Отпуск").WithCallbackData("teacher_menu_vacation"),
+			tu.InlineKeyboardButton("Отпуск за свой счет").WithCallbackData("teacher_menu_vacation_self"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Справка с места работы").WithCallbackData("teacher_menu_reference"),
+			tu.InlineKeyboardButton("Расчетный лист").WithCallbackData("teacher_menu_pay_sheet"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Больничный").WithCallbackData("teacher_menu_medical"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Help desk").WithCallbackData("teacher_menu_help_desk"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		"Возможно, Ваш вопрос уже представлен в навигационном меню.\nПопробуйте выбрать подходящий вариант:",
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
+}
+
+func SendTeacherMainMenu(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
+
+	ClearMessages(bot, authContext, userID)
+
+	SendTeacherMainMenuWithoutDelete(bot, userID, authContext)
+}
+
+func SendTeacherMainMenuWithoutDeleteHybrid(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
+
+	inlineKeyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Рабочая почта").WithCallbackData("teacher_menu_email"),
+			tu.InlineKeyboardButton("Пропуск").WithCallbackData("teacher_menu_pass"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Отпуск").WithCallbackData("teacher_menu_vacation"),
+			tu.InlineKeyboardButton("Отпуск за свой счет").WithCallbackData("teacher_menu_vacation_self"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Справка с места работы").WithCallbackData("teacher_menu_reference"),
+			tu.InlineKeyboardButton("Расчетный лист").WithCallbackData("teacher_menu_pay_sheet"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Больничный").WithCallbackData("teacher_menu_medical"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Help desk").WithCallbackData("teacher_menu_help_desk"),
+		),
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton("Сменить роль").WithCallbackData("hybrid_to_student"),
+		),
+	)
+
+	message := tu.Message(
+		tu.ID(userID),
+		"Возможно, Ваш вопрос уже представлен в навигационном меню.\nПопробуйте выбрать подходящий вариант:",
+	).WithReplyMarkup(inlineKeyboard)
+
+	sentMessage, err := bot.SendMessage(message)
+	if err != nil {
+		log.Printf("Ошибка при отправке меню: %v", err)
+	} else {
+		authContext.LastMessageIDs = append(authContext.LastMessageIDs, int64(sentMessage.MessageID))
+	}
+}
+
+func SendTeacherMainMenuHybrid(bot *telego.Bot, userID int64, authContext *models.AuthContext) {
+
+	ClearMessages(bot, authContext, userID)
+
+	SendTeacherMainMenuWithoutDeleteHybrid(bot, userID, authContext)
 }

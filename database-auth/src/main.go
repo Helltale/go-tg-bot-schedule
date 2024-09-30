@@ -19,8 +19,8 @@ type server struct {
 }
 
 func (s *server) CheckUser(ctx context.Context, req *pb.CheckUserRequest) (*pb.CheckUserResponse, error) {
-	var profileName string
-	err := s.db.QueryRow("SELECT profile_name FROM account.profile WHERE profile_tg_id = $1", req.GetProfileTgId()).Scan(&profileName)
+	var profileName, roleName string
+	err := s.db.QueryRow("SELECT profile_name, profile_role_name FROM account.profile WHERE profile_tg_id = $1", req.GetProfileTgId()).Scan(&profileName, &roleName)
 
 	if err == sql.ErrNoRows {
 		// Пользователь не найден
@@ -30,9 +30,9 @@ func (s *server) CheckUser(ctx context.Context, req *pb.CheckUserRequest) (*pb.C
 		return nil, fmt.Errorf("ошибка при проверке пользователя: %v", err)
 	}
 
-	log.Printf("пользователь `%d` найден в системе", req.GetProfileTgId())
+	log.Printf("пользователь `%d` найден в системе, rolename `%s`", req.GetProfileTgId(), roleName)
 	// Пользователь найден
-	return &pb.CheckUserResponse{Exists: true, ProfileName: profileName}, nil
+	return &pb.CheckUserResponse{Exists: true, ProfileName: profileName, RoleName: roleName}, nil
 }
 
 func (s *server) RegisterUser(ctx context.Context, req *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {

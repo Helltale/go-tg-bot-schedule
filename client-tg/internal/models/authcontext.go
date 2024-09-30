@@ -29,12 +29,23 @@ const (
 	StateReadyForDownloadDocument7
 	StateReadyForDownloadDocument8
 	StateReadyForDownloadDocument9
+
+	StateTeacherMainMenu
+	StateTeacherEmailMessage
+	StateTeacherPassMessage
+	StateTeacherVacationMessage
+	StateTeacherVacationSelfMessage
+	StateTeacherReferenseMessage
+	StateTeacherPaySheetMessage
+	StateTeacherMedicalMessage
+	StateTeacherHelpDesk
 )
 
 type AuthContext struct {
 	State          AuthState
 	UserID         int64
 	ProfileName    string
+	ProfileRole    string
 	LastMessageID  int64
 	LastMessageIDs []int64
 	LastPlaceName  string

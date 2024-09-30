@@ -17,6 +17,7 @@ message CheckUserRequest {
 message CheckUserResponse {
     bool exists = 1;
     string profile_name = 2;
+    string role_name = 3; // Новое поле для роли пользователя
 }
 
 message RegisterUserRequest {

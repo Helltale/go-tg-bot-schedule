@@ -54,9 +54,34 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 		}
 
 		if resp.Exists {
-			authContext.ProfileName = resp.ProfileName
-			authContext.State = models.StateAuthorized
-			messages.SendMainMenu(b, update.Message.Chat.ID, authContext)
+			switch resp.RoleName {
+			case "Студент":
+
+				authContext.ProfileName = resp.ProfileName
+				authContext.ProfileRole = resp.RoleName
+				authContext.State = models.StateAuthorized
+				messages.SendMessage(b, update.Message.Chat.ID, fmt.Sprintf("Вы успешно авторизованы, %s!", authContext.ProfileName), authContext)
+				messages.SendScheduleMenu(b, update.Message.Chat.ID, authContext)
+
+			case "Сотрудник":
+
+				authContext.ProfileName = resp.ProfileName
+				authContext.ProfileRole = resp.RoleName
+				authContext.State = models.StateTeacherMainMenu
+				messages.SendMessage(b, update.Message.Chat.ID, fmt.Sprintf("Вы успешно авторизованы, %s!", authContext.ProfileName), authContext)
+				messages.SendTeacherMainMenu(b, update.Message.Chat.ID, authContext)
+
+			case "Администратор":
+
+			case "Гибрид":
+				authContext.ProfileName = resp.ProfileName
+				authContext.ProfileRole = resp.RoleName
+				authContext.State = models.StateAuthorized
+				messages.SendMainMenuHybrid(b, update.Message.Chat.ID, authContext)
+
+			default:
+				messages.SendMessage(b, update.Message.Chat.ID, fmt.Sprintf("Некорректная роль `%s`, обрататитесь к администратору", authContext.ProfileRole), authContext)
+			}
 		} else {
 			authContext.State = models.StateAwaitingName
 			messages.SendMessageWithoutDelete(b, update.Message.Chat.ID, "Добро пожаловать!\nПожалуйста, введите ваше ФИО:", authContext)
@@ -81,11 +106,35 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				}
 
 				if resp.Exists {
-					authContext.ProfileName = resp.ProfileName
-					authContext.State = models.StateAuthorized
-					messages.SendMessage(b, update.Message.Chat.ID, "Вы успешно авторизованы!", authContext)
+					switch resp.RoleName {
+					case "Студент":
 
-					messages.SendScheduleMenu(b, update.Message.Chat.ID, authContext)
+						authContext.ProfileName = resp.ProfileName
+						authContext.ProfileRole = resp.RoleName
+						authContext.State = models.StateAuthorized
+						// messages.SendMessage(b, update.Message.Chat.ID, fmt.Sprintf("Вы успешно авторизованы, %s!", authContext.ProfileName), authContext)
+						messages.SendScheduleMenu(b, update.Message.Chat.ID, authContext)
+
+					case "Сотрудник":
+
+						authContext.ProfileName = resp.ProfileName
+						authContext.ProfileRole = resp.RoleName
+						authContext.State = models.StateTeacherMainMenu
+						// messages.SendMessage(b, update.Message.Chat.ID, fmt.Sprintf("Вы успешно авторизованы, %s!", authContext.ProfileName), authContext)
+						messages.SendTeacherMainMenu(b, update.Message.Chat.ID, authContext)
+
+					case "Администратор":
+
+					case "Гибрид":
+						authContext.ProfileName = resp.ProfileName
+						authContext.ProfileRole = resp.RoleName
+						authContext.State = models.StateAuthorized
+						messages.SendMainMenuHybrid(b, update.Message.Chat.ID, authContext)
+
+					default:
+						messages.SendMessage(b, update.Message.Chat.ID, "Некорректная роль, обрататитесь к администратору", authContext)
+					}
+
 				} else {
 					messages.SendMessage(b, update.Message.Chat.ID, "Пользователь не найден. Пожалуйста, введите ваше имя:", authContext)
 					authContext.State = models.StateAwaitingName
@@ -208,16 +257,22 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 				case "documents":
 					authContext.State = models.StateDocumentMenu
 					messages.SendDocumentsMenu(bot, update.CallbackQuery.From.ID, authContext)
-					// case "extracurricular":
-					// 	// Обработка нажатия на "Внеурочная активная деятельность"
-					// 	sendExtracurricularInfo(b, update.CallbackQuery.From.ID, authContext)
-					// case "ask_question":
-					// 	// Обработка нажатия на "Задать вопрос"
-					// 	sendQuestionForm(b, update.CallbackQuery.From.ID, authContext)
-					// case "change_user":
-					// 	// Обработка нажатия на "Сменить пользователя"
-					// 	authContext.State = models.StateStart
-					// 	messages.SendMessage(b, update.CallbackQuery.From.ID, "Вы вышли из аккаунта. Пожалуйста, введите ваше имя:", authContext)
+				// case "extracurricular":
+				// 	// Обработка нажатия на "Внеурочная активная деятельность"
+				// 	sendExtracurricularInfo(b, update.CallbackQuery.From.ID, authContext)
+				// case "ask_question":
+				// 	// Обработка нажатия на "Задать вопрос"
+				// 	sendQuestionForm(b, update.CallbackQuery.From.ID, authContext)
+				// case "change_user":
+				// 	// Обработка нажатия на "Сменить пользователя"
+				// 	authContext.State = models.StateStart
+				// 	messages.SendMessage(b, update.CallbackQuery.From.ID, "Вы вышли из аккаунта. Пожалуйста, введите ваше имя:", authContext)
+				case "hybrid_to_teacher":
+					if authContext.ProfileRole == "Гибрид" {
+						authContext.State = models.StateTeacherMainMenu
+						messages.SendTeacherMainMenuHybrid(bot, update.CallbackQuery.From.ID, authContext)
+					}
+
 				}
 			}
 
@@ -500,6 +555,139 @@ func New(bot *telego.Bot, updates <-chan telego.Update, options ...th.BotHandler
 					messages.SendFileInfoDocument(b, update.CallbackQuery.From.ID, authContext, "doc9", "pdf")
 				}
 			}
+
+			if authContext.State == models.StateTeacherEmailMessage {
+				if update.CallbackQuery.Data == "teacher_menu_email_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherPassMessage {
+				if update.CallbackQuery.Data == "teacher_menu_pass_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherVacationMessage {
+				if update.CallbackQuery.Data == "teacher_menu_vacation_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherVacationSelfMessage {
+				if update.CallbackQuery.Data == "teacher_menu_vacation_self_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherReferenseMessage {
+				if update.CallbackQuery.Data == "teacher_menu_reference_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherPaySheetMessage {
+				if update.CallbackQuery.Data == "teacher_menu_pay_sheet_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherMedicalMessage {
+				if update.CallbackQuery.Data == "teacher_menu_medical_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherHelpDesk {
+				if update.CallbackQuery.Data == "teacher_menu_help_desk_back" {
+					authContext.State = models.StateTeacherMainMenu
+					messages.SendTeacherMainMenu(b, update.CallbackQuery.From.ID, authContext)
+				}
+			}
+
+			if authContext.State == models.StateTeacherMainMenu {
+				if update.CallbackQuery.Data == "teacher_menu_email" {
+					authContext.State = models.StateTeacherEmailMessage
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`Для получения пароля к доменной почте samsmu.ru необходимо перейти по следующей ссылке: start.samsmu.ru.
+Если возникнут проблемы с получением необходимо позвонить в Центр технической помощи СамГМУ.
+
+Телефон: +7 (846) 374-10-04, доб. 4153`,
+						"Назад", "teacher_menu_email_back")
+
+				} else if update.CallbackQuery.Data == "teacher_menu_pass" {
+					authContext.State = models.StateTeacherPassMessage
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`Чтобы получить пропуск для входа в корпуса СамГМУ, нужно обратиться в Бюро пропусков. Оно находится по адресу: проспект Карла Маркса, 165Бк4. (Заходите в 2-х этажное здание и сразу справа будет дверь, табличка бюро пропусков). 
+
+Режим работы с 09:00 до 18:00.
+Телефон: +7 (846) 374-10-04, доб. 6741.`,
+						"Назад", "teacher_menu_pass_back")
+
+				} else if update.CallbackQuery.Data == "teacher_menu_medical" {
+					authContext.State = models.StateTeacherMedicalMessage
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`Если вы почувствуете недомогание, пожалуйста, сообщите об этом Ключниковой Е.А. 
+Мы несем ответственность за здоровье и благополучие наших сотрудников.`,
+						"Назад", "teacher_menu_medical_back")
+
+				} else if update.CallbackQuery.Data == "teacher_menu_vacation" {
+					authContext.State = models.StateTeacherVacationMessage
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`Сотрудник получает право на ежегодный оплачиваемый отпуск после 6 месяцев работы. 
+Не менее чем за 2 недели до желаемой даты отпуска, нужно обратиться в кабинет №35 по адресу: Арцыбушевская улица, 171, чтобы подать заявление на отпуск.`,
+						"Назад", "teacher_menu_vacation_back")
+
+				} else if update.CallbackQuery.Data == "teacher_menu_vacation_self" {
+					authContext.State = models.StateTeacherVacationSelfMessage
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`В случае возникновения непредвиденных обстоятельств, требующие срочного отъезда или отдыха, при условии, и при этом вы ещё не отработали шестимесячный период, пожалуйста, обратитесь по адресу: улица Арцыбушевская, 171, кабинет №35. Там вы сможете подать соответствующее заявление.`,
+						"Назад", "teacher_menu_vacation_self_back")
+
+				} else if update.CallbackQuery.Data == "teacher_menu_reference" {
+					authContext.State = models.StateTeacherReferenseMessage
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`Для получения справки с места работы вы можете воспользоваться двумя удобными способами. 
+Первый способ: посетите официальный сайт СамГМУ и найдите раздел "Решение кадровых вопросов". Там вам потребуется заполнить электронную форму заявки.
+Второй способ: лично посетите Отдел кадров, который располагается по адресу Чапаевская улица, 89, и оставьте запрос на оформление справки. 
+
+Режим работы с 09:00 до 18:00.
+Перерыв с 13:00 до 14:00.
+Сб –вс – выходные дни
+Телефон: +7 (846) 374-10-04, доб. 4922.`,
+						"Назад", "teacher_menu_reference_back")
+
+				} else if update.CallbackQuery.Data == "teacher_menu_pay_sheet" {
+					authContext.State = models.StateTeacherPaySheetMessage
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`Для того чтобы получить расчетный лист, перейдите в личный кабинет сотрудника по адресу: https://iam.samsmu.ru. 
+В личном кабинете откройте раздел «Персона», затем щелкните по гиперссылке «Расчетный лист» и выберите необходимый вам период.`,
+						"Назад", "teacher_menu_pay_sheet_back")
+
+				} else if update.CallbackQuery.Data == "teacher_menu_help_desk" {
+					authContext.State = models.StateTeacherHelpDesk
+					messages.SendMessageInlineKeyboard(bot, update.CallbackQuery.From.ID, authContext,
+						`В случае возникновения необходимости ремонта или установки дополнительных электрических розеток и иных подобных задач, следует обратиться посредством электронной почты: helpdesk@samsmu.ru. 
+После отправки запроса, в ответном письме будут предоставлены сведения о номерной идентификации Вашей заявки, а также гиперссылка для доступа в персональный кабинет для мониторинга состояния заявки. 
+В случае требования, необходимо составить служебную записку.`,
+						"Назад", "teacher_menu_help_desk_back")
+
+				} else if update.CallbackQuery.Data == "hybrid_to_student" {
+					if authContext.ProfileRole == "Гибрид" {
+						authContext.State = models.StateAuthorized
+						messages.SendMainMenu(bot, update.CallbackQuery.From.ID, authContext)
+					}
+
+				}
+			}
+
 		}
 	}, th.AnyCallbackQuery())
 

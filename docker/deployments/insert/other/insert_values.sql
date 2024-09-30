@@ -1,5 +1,5 @@
 insert into account.type_role (role_name) values 
-('Студент'), ('Администратор'), ('Сотрудник');
+('Студент'), ('Администратор'), ('Сотрудник'), ('Гибрид');
 
 --студенты
 -- insert into account.profile (profile_tg_id, profile_role_name, profile_name) values 
